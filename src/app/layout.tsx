@@ -1,13 +1,13 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
+import type { Metadata } from 'next';
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+import { Readex_Pro } from 'next/font/google';
+
+import './globals.css';
+
+const _readex = Readex_Pro({ subsets: ['latin'], variable: '--font-readex' });
 
 export const metadata: Metadata = {
-  title: "Boilerplate Booster",
-  description: "A robust Next.js boilerplate generator to kickstart new projects.",
+  title: 'Weather app',
 };
 
 export default function RootLayout({
@@ -17,15 +17,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="h-full">
-       <head>
+      <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin=""
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Readex_Pro&display=swap"
+          rel="stylesheet"
+        />
       </head>
-      <body className="font-body antialiased h-full">
-        {children}
-        <Toaster />
-      </body>
+      <body className="font-body antialiased h-full">{children}</body>
     </html>
   );
 }
