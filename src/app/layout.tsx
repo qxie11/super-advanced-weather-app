@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 
 import { Readex_Pro } from 'next/font/google';
 
+import { Providers } from '@/shared/config/providers';
+
 import './globals.css';
 
 const _readex = Readex_Pro({ subsets: ['latin'], variable: '--font-readex' });
@@ -24,12 +26,10 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin=""
         />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Readex_Pro&display=swap"
-          rel="stylesheet"
-        />
       </head>
-      <body className="font-body antialiased h-full">{children}</body>
+      <body className="font-body antialiased h-full">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
