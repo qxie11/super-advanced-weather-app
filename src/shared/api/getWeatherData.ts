@@ -1,41 +1,31 @@
 import { WeatherData } from '@/entities/weather/api/weatherApi';
 
 interface WeatherParams {
-  city?: string | null;
-  lat?: string | null;
-  lon?: string | null;
+  city: string;
   units?: string;
   lang?: string;
 }
 
 export async function getWeatherData({
   city,
-  lat,
-  lon,
   units = 'metric',
   lang = 'en',
 }: WeatherParams): Promise<WeatherData> {
-  const type = 'weather';
-
-  if (!process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY) {
-    throw new Error('OpenWeather API key not configured');
-  }
-
-  let url = `https://api.openweathermap.org/data/2.5/${type}?appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}&units=${units}&lang=${lang}`;
-
-  if (city) {
-    url += `&q=${encodeURIComponent(city)}`;
-  } else if (lat && lon) {
-    url += `&lat=${lat}&lon=${lon}`;
-  } else {
-    throw new Error('City or coordinates required');
-  }
-
-  const response = await fetch(url);
-  const data = await response.json();
+  const response = await fetch(
+    `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}&units=${units}&lang=${lang}`,
+    { cache: 'no-store' }
+  );
 
   if (!response.ok) {
-    throw new Error(data.message || 'Weather API error');
+    throw new Error(
+      `Weather API error: ${response.status} ${response.statusText}`
+    );
+  }
+
+  const data = await response.json();
+
+  if (data.cod !== 200) {
+    throw new Error(data.message || 'Weather API returned error');
   }
 
   return data;

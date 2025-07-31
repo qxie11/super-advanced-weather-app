@@ -5,9 +5,13 @@ import HomePage from '@/pages-components/HomePage';
 import { getWeatherData } from '@/shared/api/getWeatherData';
 import { browserLangToOWMLang } from '@/shared/constants/lang';
 
+interface PageProps {
+  searchParams: { q?: string };
+}
+
 async function getCityFromIp(ip: string | null): Promise<string | null> {
-  if (!ip || ip === '::1' || ip.startsWith('127.')) {
-    return null; // Localhost, no city to find
+  if (!ip || ip === '::1' || ip.startsWith('127.') || ip === 'localhost') {
+    return null;
   }
   try {
     const response = await fetch(`http://ip-api.com/json/${ip}`);
@@ -22,10 +26,23 @@ async function getCityFromIp(ip: string | null): Promise<string | null> {
   }
 }
 
-export default async function Page() {
+function getClientIp(headers: Headers): string | null {
+  const forwardedFor = headers.get('x-forwarded-for');
+  const realIp = headers.get('x-real-ip');
+  const cfConnectingIp = headers.get('cf-connecting-ip');
+  const xClientIp = headers.get('x-client-ip');
+
+  if (forwardedFor) {
+    const ips = forwardedFor.split(',').map(ip => ip.trim());
+    return ips[0];
+  }
+
+  return realIp || cfConnectingIp || xClientIp || null;
+}
+
+export default async function Page({ searchParams }: PageProps) {
   const headersList = await getHeaders();
-  const ip =
-    headersList.get('x-forwarded-for') || headersList.get('remote-addr');
+  const ip = getClientIp(headersList);
 
   const acceptLanguage = headersList.get('accept-language') || 'en';
   const browserLang = acceptLanguage.split(',')[0].split('-')[0];
@@ -33,31 +50,44 @@ export default async function Page() {
     browserLangToOWMLang[browserLang as keyof typeof browserLangToOWMLang] ||
     'en';
 
-  let city = 'London'; // Default city
   let data: WeatherData | null = null;
 
-  try {
-    const cityFromIp = await getCityFromIp(ip);
-    if (cityFromIp) {
-      try {
+  if (searchParams.q) {
+    try {
+      data = await getWeatherData({
+        city: searchParams.q,
+        units: 'metric',
+        lang,
+      });
+    } catch (error) {
+      console.error(
+        `Could not get weather for query city: ${searchParams.q}`,
+        error
+      );
+    }
+  }
+
+  if (!data && ip) {
+    try {
+      const cityFromIp = await getCityFromIp(ip);
+      if (cityFromIp) {
         data = await getWeatherData({
           city: cityFromIp,
           units: 'metric',
           lang,
         });
-        city = cityFromIp;
-      } catch {
-        console.error(
-          `Could not get weather for city: ${cityFromIp}. Falling back to London.`
-        );
       }
+    } catch (error) {
+      console.error('Could not get weather for IP-based city:', error);
     }
+  }
 
-    if (!data) {
-      data = await getWeatherData({ city, units: 'metric', lang });
+  if (!data) {
+    try {
+      data = await getWeatherData({ city: 'London', units: 'metric', lang });
+    } catch (error) {
+      console.error('Failed to fetch default weather data for London:', error);
     }
-  } catch (error) {
-    console.error('Failed to fetch default weather data for London:', error);
   }
 
   return <HomePage defaultCityData={data as WeatherData} />;
