@@ -1,8 +1,16 @@
+import { ChevronLeft } from 'lucide-react';
+
 import Link from 'next/link';
 
 import { ForecastData } from '@/entities/weather/api/weatherApi';
 import { ForecastChart } from '@/entities/weather/ui/ForecastChart';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/shared/ui/card';
 import Container from '@/shared/ui/container';
 
 interface PageProps {
@@ -30,25 +38,34 @@ export default async function ForecastPage({ params }: PageProps) {
   const cityName = forecastData?.city?.name || decodeURIComponent(params.city);
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
+    <main className="min-h-screen w-full bg-background">
       <Container>
-        <Card>
-          <CardHeader>
-            <CardTitle>5-Day Weather Forecast for {cityName}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {forecastData ? (
-              <ForecastChart forecastData={forecastData} />
-            ) : (
-              <p>Could not load forecast data.</p>
-            )}
-            <div className="mt-4 text-center">
-              <Link href="/" className="text-blue-500 hover:underline">
-                Back to current weather
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="py-8">
+          <Card className="w-full">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>5-Day Weather Forecast</CardTitle>
+                  <CardDescription>for {cityName}</CardDescription>
+                </div>
+                <Link
+                  href="/"
+                  className="flex items-center gap-2 text-sm text-primary hover:underline"
+                >
+                  <ChevronLeft size={16} />
+                  Back to current weather
+                </Link>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {forecastData ? (
+                <ForecastChart forecastData={forecastData} />
+              ) : (
+                <p>Could not load forecast data.</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </Container>
     </main>
   );

@@ -1,9 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import {
+  Cloud,
+  Droplets,
+  Gauge,
+  Loader2,
+  MapPin,
+  Search,
+  Sun,
+  Thermometer,
+  Wind,
+} from 'lucide-react';
+
+import { useEffect, useState } from 'react';
 
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 
+import { useDebounce } from '@/shared/hooks/useDebounce';
 import { useLanguage } from '@/shared/hooks/useLanguage';
 
 import { WeatherData, useGetWeatherByCityQuery } from '../api/weatherApi';
@@ -13,105 +27,173 @@ interface WeatherWidgetProps {
 }
 
 export function WeatherWidget({ defaultCityData }: WeatherWidgetProps) {
-  const [city, setCity] = useState(defaultCityData?.name || '');
-  const [searchCity, setSearchCity] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const cityFromQuery = searchParams.get('q');
+
+  const [city, setCity] = useState(
+    cityFromQuery || defaultCityData?.name || 'London'
+  );
+  const [inputValue, setInputValue] = useState(city);
+  const debouncedSearchTerm = useDebounce(inputValue, 500);
   const lang = useLanguage();
 
-  const {
-    data: weatherData = defaultCityData,
-    isLoading,
-    error,
-  } = useGetWeatherByCityQuery({ city, lang }, { skip: !city });
+  useEffect(() => {
+    const isSearchValid =
+      debouncedSearchTerm && debouncedSearchTerm.trim().length > 1;
 
-  const handleSearch = () => {
-    if (searchCity.trim()) {
-      setCity(searchCity.trim());
-      setSearchCity('');
+    if (
+      isSearchValid &&
+      debouncedSearchTerm.trim().toLowerCase() !==
+        (cityFromQuery || '').toLowerCase()
+    ) {
+      router.push(`/?q=${encodeURIComponent(debouncedSearchTerm.trim())}`, {
+        scroll: false,
+      });
+    }
+  }, [debouncedSearchTerm, router, cityFromQuery]);
+
+  useEffect(() => {
+    if (cityFromQuery) {
+      setCity(cityFromQuery);
+    }
+  }, [cityFromQuery]);
+
+  const {
+    data: weatherData,
+    isLoading,
+    isFetching,
+    error,
+  } = useGetWeatherByCityQuery(
+    { city, lang },
+    {
+      skip: !city,
+      initialData:
+        defaultCityData?.name?.toLowerCase() === city.toLowerCase()
+          ? defaultCityData
+          : undefined,
+    }
+  );
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const currentData = weatherData || defaultCityData;
+
+  const renderWeatherIcon = (weatherMain: string) => {
+    switch (weatherMain) {
+      case 'Clouds':
+        return <Cloud className="h-16 w-16 text-slate-400" />;
+      case 'Rain':
+      case 'Drizzle':
+        return <Droplets className="h-16 w-16 text-blue-400" />;
+      case 'Clear':
+        return <Sun className="h-16 w-16 text-yellow-400" />;
+      default:
+        return <Cloud className="h-16 w-16 text-slate-400" />;
     }
   };
 
-  if (isLoading && !defaultCityData) {
-    return (
-      <div className="p-4 bg-white rounded-lg shadow-md">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-          <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-        <p className="text-red-600">Error loading weather data</p>
-      </div>
-    );
-  }
+  const isLoadingState = isLoading || isFetching;
 
   return (
-    <div className="p-6 bg-white rounded-lg shadow-md max-w-md">
+    <div className="w-full max-w-lg rounded-xl bg-card/80 backdrop-blur-sm p-4 shadow-lg ring-1 ring-black/10 sm:p-6">
       <div className="mb-4">
-        <div className="flex gap-2">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
-            value={searchCity}
-            onChange={e => setSearchCity(e.target.value)}
-            placeholder="Enter city name"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            onKeyPress={e => e.key === 'Enter' && handleSearch()}
+            value={inputValue}
+            onChange={handleSearchChange}
+            placeholder="Search for a city..."
+            className="w-full rounded-md border-border bg-background/50 py-2 pl-10 pr-4 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           />
-          <button
-            onClick={handleSearch}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Search
-          </button>
         </div>
       </div>
 
-      {weatherData && (
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            {weatherData.name}, {weatherData.sys.country}
-          </h2>
+      {isLoadingState && (
+        <div className="flex justify-center items-center p-8">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        </div>
+      )}
 
-          <div className="mb-4">
-            <div className="text-6xl font-bold text-blue-600">
-              {Math.round(weatherData.main.temp)}°C
+      {error && !isLoadingState && (
+        <div className="rounded-md bg-destructive/10 p-4 text-center text-destructive">
+          <p>Could not load weather data for this city.</p>
+        </div>
+      )}
+
+      {!currentData && !isLoadingState && !error && (
+        <div className="text-center text-muted-foreground">
+          No data available.
+        </div>
+      )}
+
+      {currentData && !error && (
+        <div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 text-2xl font-bold">
+                <MapPin className="h-6 w-6" />
+                {currentData.name}, {currentData.sys.country}
+              </h2>
+              <p className="text-muted-foreground capitalize">
+                {currentData.weather[0]?.description}
+              </p>
             </div>
-            <div className="text-lg text-gray-600 capitalize">
-              {weatherData.weather[0]?.description}
-            </div>
+            {renderWeatherIcon(currentData.weather[0]?.main)}
+          </div>
+
+          <div className="my-6 text-center">
+            <span className="text-7xl font-bold">
+              {Math.round(currentData.main.temp)}
+            </span>
+            <span className="align-super text-3xl">°C</span>
           </div>
 
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="bg-gray-50 p-3 rounded">
-              <div className="text-gray-500">Feels like</div>
-              <div className="font-semibold">
-                {Math.round(weatherData.main.feels_like)}°C
+            <div className="flex items-center gap-2 rounded-lg bg-secondary/50 p-3">
+              <Thermometer size={20} className="text-primary" />
+              <div>
+                <div className="text-muted-foreground">Feels like</div>
+                <div className="font-semibold">
+                  {Math.round(currentData.main.feels_like)}°C
+                </div>
               </div>
             </div>
-            <div className="bg-gray-50 p-3 rounded">
-              <div className="text-gray-500">Humidity</div>
-              <div className="font-semibold">{weatherData.main.humidity}%</div>
+            <div className="flex items-center gap-2 rounded-lg bg-secondary/50 p-3">
+              <Droplets size={20} className="text-primary" />
+              <div>
+                <div className="text-muted-foreground">Humidity</div>
+                <div className="font-semibold">
+                  {currentData.main.humidity}%
+                </div>
+              </div>
             </div>
-            <div className="bg-gray-50 p-3 rounded">
-              <div className="text-gray-500">Wind</div>
-              <div className="font-semibold">{weatherData.wind.speed} m/s</div>
+            <div className="flex items-center gap-2 rounded-lg bg-secondary/50 p-3">
+              <Wind size={20} className="text-primary" />
+              <div>
+                <div className="text-muted-foreground">Wind</div>
+                <div className="font-semibold">
+                  {currentData.wind.speed} m/s
+                </div>
+              </div>
             </div>
-            <div className="bg-gray-50 p-3 rounded">
-              <div className="text-gray-500">Pressure</div>
-              <div className="font-semibold">
-                {weatherData.main.pressure} hPa
+            <div className="flex items-center gap-2 rounded-lg bg-secondary/50 p-3">
+              <Gauge size={20} className="text-primary" />
+              <div>
+                <div className="text-muted-foreground">Pressure</div>
+                <div className="font-semibold">
+                  {currentData.main.pressure} hPa
+                </div>
               </div>
             </div>
           </div>
           <div className="mt-6">
             <Link
-              href={`/forecast/${encodeURIComponent(weatherData.name)}`}
-              className="inline-block px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+              href={`/forecast/${encodeURIComponent(currentData.name)}`}
+              className="inline-block w-full rounded-md bg-primary py-3 text-center font-semibold text-primary-foreground transition hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             >
               View 5-Day Forecast
             </Link>

@@ -1,6 +1,5 @@
 import { WeatherData } from '@/entities/weather/api/weatherApi';
 import { WeatherWidget } from '@/entities/weather/ui/WeatherWidget';
-import Container from '@/shared/ui/container';
 
 interface HomePageProps {
   defaultCityData?: WeatherData;
@@ -8,12 +7,8 @@ interface HomePageProps {
 
 const HomePage = ({ defaultCityData }: HomePageProps) => {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
-      <Container>
-        <div className="flex justify-center items-center">
-          <WeatherWidget defaultCityData={defaultCityData} />
-        </div>
-      </Container>
+    <main className="flex min-h-screen w-full items-center justify-center bg-background p-4">
+      <WeatherWidget defaultCityData={defaultCityData} />
     </main>
   );
 };

@@ -2,9 +2,9 @@
 
 import { format } from 'date-fns';
 import {
+  Area,
+  AreaChart,
   CartesianGrid,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -27,7 +27,7 @@ export function ForecastChart({ forecastData }: ForecastChartProps) {
   return (
     <div className="h-[400px]">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart
+        <AreaChart
           data={chartData}
           margin={{
             top: 5,
@@ -36,6 +36,32 @@ export function ForecastChart({ forecastData }: ForecastChartProps) {
             bottom: 5,
           }}
         >
+          <defs>
+            <linearGradient id="colorTemp" x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="5%"
+                stopColor="hsl(var(--primary))"
+                stopOpacity={0.8}
+              />
+              <stop
+                offset="95%"
+                stopColor="hsl(var(--primary))"
+                stopOpacity={0}
+              />
+            </linearGradient>
+            <linearGradient id="colorFeels" x1="0" y1="0" x2="0" y2="1">
+              <stop
+                offset="5%"
+                stopColor="hsl(var(--accent))"
+                stopOpacity={0.8}
+              />
+              <stop
+                offset="95%"
+                stopColor="hsl(var(--accent))"
+                stopOpacity={0}
+              />
+            </linearGradient>
+          </defs>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="date" />
           <YAxis
@@ -46,24 +72,23 @@ export function ForecastChart({ forecastData }: ForecastChartProps) {
             labelStyle={{ fontWeight: 'bold' }}
             wrapperClassName="rounded-md border bg-background p-2 shadow-sm"
           />
-          <Line
+          <Area
             type="monotone"
             dataKey="temp"
             stroke="hsl(var(--primary))"
-            strokeWidth={2}
+            fillOpacity={1}
+            fill="url(#colorTemp)"
             name="Temperature"
-            dot={false}
           />
-          <Line
+          <Area
             type="monotone"
             dataKey="feels_like"
             stroke="hsl(var(--accent))"
-            strokeWidth={2}
+            fillOpacity={1}
+            fill="url(#colorFeels)"
             name="Feels Like"
-            strokeDasharray="5 5"
-            dot={false}
           />
-        </LineChart>
+        </AreaChart>
       </ResponsiveContainer>
     </div>
   );
