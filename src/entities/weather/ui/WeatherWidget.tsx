@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import Link from 'next/link';
+
 import { useLanguage } from '@/shared/hooks/useLanguage';
 
 import { WeatherData, useGetWeatherByCityQuery } from '../api/weatherApi';
@@ -11,7 +13,7 @@ interface WeatherWidgetProps {
 }
 
 export function WeatherWidget({ defaultCityData }: WeatherWidgetProps) {
-  const [city, setCity] = useState('');
+  const [city, setCity] = useState(defaultCityData?.name || '');
   const [searchCity, setSearchCity] = useState('');
   const lang = useLanguage();
 
@@ -28,7 +30,7 @@ export function WeatherWidget({ defaultCityData }: WeatherWidgetProps) {
     }
   };
 
-  if (isLoading) {
+  if (isLoading && !defaultCityData) {
     return (
       <div className="p-4 bg-white rounded-lg shadow-md">
         <div className="animate-pulse">
@@ -105,6 +107,14 @@ export function WeatherWidget({ defaultCityData }: WeatherWidgetProps) {
                 {weatherData.main.pressure} hPa
               </div>
             </div>
+          </div>
+          <div className="mt-6">
+            <Link
+              href={`/forecast/${encodeURIComponent(weatherData.name)}`}
+              className="inline-block px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500"
+            >
+              View 5-Day Forecast
+            </Link>
           </div>
         </div>
       )}

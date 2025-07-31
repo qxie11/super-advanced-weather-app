@@ -2,6 +2,7 @@ import { headers as getHeaders } from 'next/headers';
 
 import { WeatherData } from '@/entities/weather/api/weatherApi';
 import HomePage from '@/pages-components/HomePage';
+import { getWeatherData } from '@/shared/api/getWeatherData';
 
 interface PageProps {
   searchParams: { q?: string };
@@ -12,7 +13,7 @@ export default async function Page({ searchParams }: PageProps) {
 
   const headersList = getHeaders();
 
-  const acceptLanguage = (await headersList).get('accept-language') || 'en';
+  const acceptLanguage = headersList.get('accept-language') || 'en';
   const browserLang = acceptLanguage.split(',')[0].split('-')[0];
 
   const browserLangToOWMLang = {
@@ -62,10 +63,16 @@ export default async function Page({ searchParams }: PageProps) {
     zu: 'zu',
   };
 
-  const response = await fetch(
-    `https://api.openweathermap.org/data/2.5/weather?q=${defaultCity}&appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}&units=metric&lang=${browserLangToOWMLang[browserLang]}`
-  );
-  const data = (await response.json()) as WeatherData;
+  const lang =
+    browserLangToOWMLang[browserLang as keyof typeof browserLangToOWMLang] ||
+    'en';
+
+  let data: WeatherData | null = null;
+  try {
+    data = await getWeatherData({ city: defaultCity, units: 'metric', lang });
+  } catch (error) {
+    console.error(error);
+  }
 
   return <HomePage defaultCityData={data} />;
 }

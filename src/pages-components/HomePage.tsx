@@ -10,7 +10,7 @@ const HomePage = ({ defaultCityData }: HomePageProps) => {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8">
       <Container>
-        <div className="flex justify-center">
+        <div className="flex justify-center items-center">
           <WeatherWidget defaultCityData={defaultCityData} />
         </div>
       </Container>
