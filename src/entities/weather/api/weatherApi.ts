@@ -136,7 +136,7 @@ export const weatherApi = baseApi.injectEndpoints({
       query: ({ city, units = 'metric', lang = 'en' }) => ({
         url: '',
         params: {
-          q: city, // Используем 'q' для совместимости с OpenWeather API
+          q: city,
           units,
           lang,
           type: 'weather',
