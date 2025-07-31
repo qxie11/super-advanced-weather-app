@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   const lon = searchParams.get('lon');
   const units = searchParams.get('units') || 'metric';
   const type = searchParams.get('type') || 'weather';
+  const lang = searchParams.get('lang') || 'en';
 
   if (!process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY) {
     return NextResponse.json(
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let url = `https://api.openweathermap.org/data/2.5/${type}?appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}&units=${units}`;
+    let url = `https://api.openweathermap.org/data/2.5/${type}?appid=${process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY}&units=${units}&lang=${lang}`;
 
     if (city) {
       url += `&q=${encodeURIComponent(city)}`;

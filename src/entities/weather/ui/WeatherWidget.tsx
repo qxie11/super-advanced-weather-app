@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 
+import { useLanguage } from '@/shared/hooks/useLanguage';
+
 import { WeatherData, useGetWeatherByCityQuery } from '../api/weatherApi';
 
 interface WeatherWidgetProps {
@@ -11,12 +13,13 @@ interface WeatherWidgetProps {
 export function WeatherWidget({ defaultCityData }: WeatherWidgetProps) {
   const [city, setCity] = useState('');
   const [searchCity, setSearchCity] = useState('');
+  const lang = useLanguage();
 
   const {
     data: weatherData = defaultCityData,
     isLoading,
     error,
-  } = useGetWeatherByCityQuery({ city }, { skip: !city });
+  } = useGetWeatherByCityQuery({ city, lang }, { skip: !city });
 
   const handleSearch = () => {
     if (searchCity.trim()) {

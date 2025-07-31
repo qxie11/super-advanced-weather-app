@@ -99,14 +99,15 @@ export const weatherApi = baseApi.injectEndpoints({
   endpoints: builder => ({
     getCurrentWeather: builder.query<
       WeatherData,
-      { lat: number; lon: number; units?: string }
+      { lat: number; lon: number; units?: string; lang?: string }
     >({
-      query: ({ lat, lon, units = 'metric' }) => ({
+      query: ({ lat, lon, units = 'metric', lang = 'en' }) => ({
         url: '',
         params: {
           lat,
           lon,
           units,
+          lang,
           type: 'weather',
         },
       }),
@@ -114,14 +115,15 @@ export const weatherApi = baseApi.injectEndpoints({
     }),
     getWeatherForecast: builder.query<
       ForecastData,
-      { lat: number; lon: number; units?: string }
+      { lat: number; lon: number; units?: string; lang?: string }
     >({
-      query: ({ lat, lon, units = 'metric' }) => ({
+      query: ({ lat, lon, units = 'metric', lang = 'en' }) => ({
         url: '',
         params: {
           lat,
           lon,
           units,
+          lang,
           type: 'forecast',
         },
       }),
@@ -129,13 +131,14 @@ export const weatherApi = baseApi.injectEndpoints({
     }),
     getWeatherByCity: builder.query<
       WeatherData,
-      { city: string; units?: string }
+      { city: string; units?: string; lang?: string }
     >({
-      query: ({ city, units = 'metric' }) => ({
+      query: ({ city, units = 'metric', lang = 'en' }) => ({
         url: '',
         params: {
           q: city, // Используем 'q' для совместимости с OpenWeather API
           units,
+          lang,
           type: 'weather',
         },
       }),
