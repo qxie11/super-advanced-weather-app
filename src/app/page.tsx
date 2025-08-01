@@ -52,7 +52,7 @@ export default async function Page({ searchParams }: PageProps) {
 
   let data: WeatherData | null = null;
 
-  if (searchParams.q) {
+  if (searchParams?.q) {
     try {
       data = await getWeatherData({
         city: searchParams.q,
